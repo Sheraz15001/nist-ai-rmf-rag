@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ask the AI Risk Framework</title>
+  <style>
+    body {
+      font: 16px system-ui, sans-serif;
+      max-width: 720px;
+      margin: 60px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+    }
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      font: inherit;
+    }
+    button {
+      margin-top: 12px;
+      padding: 10px 18px;
+      font: inherit;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 28px;
+      white-space: pre-wrap;
+    }
+    #pages {
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ask the AI Risk Framework</h1>
+  <p>Ask questions about the NIST AI Risk Management Framework PDF.</p>
+
+  <form id="question-form">
+    <textarea
+      id="question"
+      rows="3"
+      placeholder="What does the GOVERN function address?"
+      required
+    ></textarea>
+    <button type="submit">Ask</button>
+  </form>
+
+  <div id="result" role="status"></div>
+  <p id="pages"></p>
+
+  <script>
+    document.getElementById("question-form").addEventListener(
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        const result = document.getElementById("result");
+        const pages = document.getElementById("pages");
+        const question = document.getElementById("question").value;
+
+        result.textContent = "Finding an answer...";
+        pages.textContent = "";
+
+        try {
+          const response = await fetch("/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || "Request failed");
+          }
+
+          result.textContent = data.answer;
+          pages.textContent =
+            "Retrieved PDF pages: " +
+            data.retrieved_pdf_pages.join(", ");
+        } catch (error) {
+          result.textContent = "Error: " + error.message;
+        }
+      }
+    );
+  </script>
+</body>
+</html>
